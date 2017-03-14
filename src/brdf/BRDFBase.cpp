@@ -112,7 +112,7 @@ bool BRDFBase::loadBRDF( const char* filename )
 	std::string shader;
 	std::string token;
 	std::string currentSection;
-    
+
 	if( !beginFile() )
 		return false;
 
@@ -122,10 +122,10 @@ bool BRDFBase::loadBRDF( const char* filename )
 
 	// make sure we know how to read this
     std::string type = trim(line);
-    type = type.substr( 0, type.find( ' ' ) ); 
+    type = type.substr( 0, type.find( ' ' ) );
 	if( type != "analytic" && type != "bparam" )
 		return false;
-    
+
 
 	while( getline( ifs, line ) )
 	{
@@ -148,7 +148,7 @@ bool BRDFBase::loadBRDF( const char* filename )
 		if( token == "::begin" )
 		{
 			os >> token;
-			
+
 			// still in another section?
 			if( currentSection != "" )
 				return false;
@@ -195,7 +195,7 @@ bool BRDFBase::loadBRDF( const char* filename )
 	if( !endFile() )
 		return false;
 
-    
+
 	return true;
 }
 
@@ -288,13 +288,13 @@ bool BRDFBase::processParameterLine( std::string line )
 DGLShader* BRDFBase::getUpdatedShader( int shaderType, brdfPackage* pkg )
 {
     initGL();
-    
+
     // if there aren't any shaders, try to compile one
     if( !shaders[shaderType].shader )
         compileShader( shaders[shaderType].shader,
                        shaders[shaderType].vertexShaderFilename,
                        shaders[shaderType].fragmentShaderFilename );
-    
+
     // assuming the compilation worked...
     DGLShader* shader = shaders[shaderType].shader;
     if( shader )
@@ -302,14 +302,14 @@ DGLShader* BRDFBase::getUpdatedShader( int shaderType, brdfPackage* pkg )
         shader->enable();
 
         // let any derived classes add stuff to the shader
-        adjustShaderPreRender( shader ); 
+        adjustShaderPreRender( shader );
 
         // sets colors
-        setColorsFromPackage( shader, pkg ); 
+        setColorsFromPackage( shader, pkg );
 
         return shader;
     }
-    
+
     // if it didn't... sorry, folks, but there's no shader.
     return NULL;
 }
@@ -352,7 +352,7 @@ std::string BRDFBase::loadShaderFromFile( std::string filename, std::string chun
 		else if( chunkToInsert.length() && line == "::INSERT_BRDF_FUNCTION_HERE::" )
         {
 			completeShader += std::string("\n") + chunkToInsert + "\n";
-        }	
+        }
         else if( isFuncToInsert.length() && line == "::INSERT_IS_FUNCTION_HERE::" )
         {
             completeShader += std::string("\n") + isFuncToInsert + "\n";
@@ -401,7 +401,7 @@ std::string BRDFBase::getBRDFFunction()
 {
 	std::string func = "float BRDF( vec3 toLight, vec3 toViewer, vec3 normal, vec3 tangent, vec3 bitangent )\n";
 	func += "{ return 1.0; }\n";
-	
+
 	return func;
 }
 
@@ -412,7 +412,7 @@ std::string BRDFBase::getISFunction()
 {
     std::string func = "vec3 sampleBRDF( float u, float v, vec3 normal, vec3 tangent, vec3 bitangent, out vec3 wi, out float pdf )\n";
     func += "{ return vec3(0.0); }\n";
-    
+
     return func;
 }
 
@@ -562,17 +562,17 @@ void BRDFBase::syncParametersIntoBRDF( BRDFBase* newBRDF )
 
 
 void BRDFBase::saveParamsFile( const char* filename )
-{   
+{
     FILE* out = fopen( filename, "wt" );
     if( !out )
         return;
-    
+
     fprintf( out, "bparam %s\n\n", name.c_str() );
     fprintf( out, "::begin parameters\n" );
-    
+
     // write out the current values of the parameters
     for( int i = 0; i < (int)floatParameters.size(); i++ )
-        fprintf( out, "float %s %f %f %f\n", floatParameters[i].name.c_str(), 
+        fprintf( out, "float %s %f %f %f\n", floatParameters[i].name.c_str(),
                  floatParameters[i].minVal, floatParameters[i].maxVal, floatParameters[i].currentVal );
     for( int i = 0; i < (int)boolParameters.size(); i++ )
         fprintf( out, "bool %s %d\n", boolParameters[i].name.c_str(),
@@ -582,7 +582,7 @@ void BRDFBase::saveParamsFile( const char* filename )
                                              colorParameters[i].currentVal[0],
                                              colorParameters[i].currentVal[1],
                                              colorParameters[i].currentVal[2] );
-    
+
     fprintf( out, "::end parameters\n" );
     fclose( out );
 }
@@ -590,12 +590,12 @@ void BRDFBase::saveParamsFile( const char* filename )
 
 
 BRDFBase* BRDFBase::cloneBRDF(bool resetToDefaults)
-{    
+{
     BRDFBase* b = createBRDFFromFile( name );
-    
+
     if( b && resetToDefaults == false )
         syncParametersIntoBRDF( b );
-   
+
     return b;
 }
 
@@ -606,7 +606,7 @@ BRDFBase* BRDFBase::cloneBRDF(bool resetToDefaults)
 
 // this is a factory function that creates a BRDF class of a given type, based on the extension of the input file
 BRDFBase* createBRDFFromFile( std::string filename )
-{      
+{
     std::string extension = filename.substr( filename.find_last_of( '.' ) +1 );
     BRDFBase* b = NULL;
     bool success = false;
@@ -642,7 +642,7 @@ BRDFBase* createBRDFFromFile( std::string filename )
         std::string line;
         getline( ifs, line );
         line = trim(line);
-        std::string dataFile = line.substr( line.find( ' ' ) + 1 ); 
+        std::string dataFile = line.substr( line.find( ' ' ) + 1 );
 
         // try and load the bparam file as an analytic, to extract the parameters
         BRDFBase* dummy = new BRDFAnalytic;
@@ -650,20 +650,20 @@ BRDFBase* createBRDFFromFile( std::string filename )
         if( !success )
         {
             delete dummy;
-            return false;
+            return NULL;
         }
-                
+
         // create a new BRDF from the datafile name
         b = createBRDFFromFile( dataFile );
         if( !b )
-            return false;
-        
+            return NULL;
+
         // now that we've got an actual BRDF, and a fake BRDF with parameters, sync 'em
         dummy->syncParametersIntoBRDF( b );
 
         // all done with the dummy BRDF class
         delete dummy;
-        
+
         b->setName( filename );
     }
 
@@ -677,12 +677,12 @@ BRDFBase* createBRDFFromFile( std::string filename )
 
     // silently ignore everything else
     else return NULL;
-    
+
     if( !success )
     {
         delete b;
         return NULL;
     }
-    
+
     return b;
 }
